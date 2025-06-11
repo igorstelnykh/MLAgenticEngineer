@@ -3,6 +3,7 @@ import os
 
 class Config:
     # Database config
-    DB_URL = ""
+    # format: postgresql://<user>:<password>@<host>:<post>/<dbname>
+    DB_URL = "postgresql://postgres:example@localhost:5432/stress_alerts"
 
     

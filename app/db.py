@@ -6,8 +6,8 @@ def get_db():
     Opens new db connection if none exist for current context
     """
     if 'db' not in g:
-        connection_str = current_app.config['DATABASE_URL']
-        g.db = psycopg2.connect(connection_str)
+        conn_str = current_app.config['DB_URL']
+        g.db = psycopg2.connect(conn_str)
     return g.db
 
 def close_db(e=None):
