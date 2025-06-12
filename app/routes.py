@@ -15,7 +15,7 @@ def get_alerts():
     cur = conn.cursor()
 
     # get data from db(optional: sort by most recent timestamp)
-    query = 'SELECT user_id, stress_score, "timestamp" FROM high_stress_users;'
+    query = 'SELECT user_id, stress_score, "timestamp" FROM high_stress_users ORDER BY "timestamp" DESC;'
     cur.execute(query)
     db_alerts = cur.fetchall()
     cur.close()
