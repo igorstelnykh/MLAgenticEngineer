@@ -1,69 +1,45 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Sample SAM app with PostgreSQL, DynamoDB, TypeScript & Python Lambdas.
+Description: >
+  ML Agentic Engineer Project: this app has 2 Lambda functions, one to run a data processing agent
+  and one to expose an API to view data from a DB
 
+# Settings that apply to all functions defined below
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 30
+    Runtime: python3.11
+    MemorySize: 256
 
 Resources:
-
-  UserTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: UserEvents
-      BillingMode: PAYPERREQUEST
-      AttributeDefinitions:
-        - AttributeName: userId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-      StreamSpecification:
-        StreamViewType: NEW_IMAGE
-
-  TSLambda:
+  # Lambda function for API endpoint
+  GetAlertsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ts-lambda/
-      Handler: dist/app.handler
-      Runtime: nodejs18.x
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /user
-            Method: post
-      Environment:
-        Variables:
-          PGHOST: "host.docker.internal"
-          PGUSER: "postgres"
-          PGPASSWORD: "example"
-          PGDATABASE: "users"
-          PGPORT: "5432"
-
-  PyLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: py-lambda/
+      CodeUri: lambda_functions/get_alerts/
       Handler: app.lambda_handler
-      Runtime: python3.11
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /user-python
-            Method: post
       Environment:
         Variables:
-          PGHOST: "host.docker.internal"
-          PGUSER: "postgres"
-          PGPASSWORD: "example"
-          PGDATABASE: "users"
-          PGPORT: "5432"
+          DATABASE_URL: "postgresql://postgres:example@host.docker.internal:5432/stress_alerts"
+      Events:
+        GetAlertsApi:
+          Type: Api
+          Properties:
+            Path: /alerts
+            Method: get
+  
+  # Lambda function for agent
+  RunAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/run_agent/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          DATABASE_URL: "postgresql://postgres:example@host.docker.internal:5432/stress_alerts"
 
 Outputs:
   ApiUrl:
     Description: "API Gateway endpoint"
     Value:
-      Fn::Sub: "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/user"
+      Fn::Sub: "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/alerts"
