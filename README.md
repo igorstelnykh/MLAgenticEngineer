@@ -86,7 +86,7 @@ Make sure virtual environment is activated!! Should say (venv) on the left side 
 ````bash
 sam build
 ````
-2. Create event.json in lambda_functions/run_agent directory, paste name of CSV in the value for filepath, save
+2.(Optional) Edit event.json in lambda_functions/run_agent directory to change the CSV filepath 
 ````bash
 {
   "filepath": "university_mental_health_iot_dataset.csv"
