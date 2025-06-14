@@ -49,10 +49,20 @@ def lambda_handler(event, context):
     try:
         # read data into dataframe
         logger.info(f"Reading from {filepath}")
-        df = pd.read_csv(filepath, parse_dates=['timestamp'])
+        df = pd.read_csv(filepath)
         logging.info(f"Successfully read {len(df)} records from {filepath}")
 
+        # check that required columns(stress_level and timestamp) are present in csv
+        required_cols = {'timestamp', 'stress_level'}
+        if not required_cols.issubset(df.columns):
+            logger.error(f"Error: {filepath} is missing one of the required columns {required_cols}")
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"error": f"{filepath} is missing one of the required columns {required_cols}"})
+            }
+
         # clean and log malformed data
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
         df['stress_level'] = pd.to_numeric(df['stress_level'], errors='coerce')
         malformed_rows = df[df['stress_level'].isnull() | df['timestamp'].isnull()]
 

@@ -35,7 +35,7 @@ class TestRunAgent(unittest.TestCase):
         lambda_response = run_agent_app.lambda_handler(event, {})
 
         # check all required csv reader and DB functions were called
-        mock_read_csv.assert_called_once_with('sample_data.csv', parse_dates=['timestamp'])
+        mock_read_csv.assert_called_once_with('sample_data.csv')
         mock_db.connect.assert_called_once_with('sample_db_url')
         mock_conn.cursor.assert_called_once()
         mock_cur.execute.assert_called_once()
@@ -65,6 +65,24 @@ class TestRunAgent(unittest.TestCase):
         # check 200 response and that DB was not called
         self.assertEqual(lambda_response['statusCode'], 200)
         mock_db.connect.assert_not_called()
+    
+    @patch('lambda_functions.run_agent.app.pd.read_csv')
+    def test_run_agent_handler_missing_required_column(self, mock_read_csv):
+        """
+        Tests run_agent lambda_handler when CSV is missing timestamp or stress_level column
+        """
+        mock_data = {
+            'timestamp': [datetime(2025, 6, 13, 12, 0, 0)], 
+            'sample_column': [111]
+        }
+        mock_read_csv.return_value = pd.DataFrame(mock_data)
+
+        # call lambda handler
+        event = {'filepath': 'sample_data.csv'}
+        lambda_response = run_agent_app.lambda_handler(event, {})
+
+        # check 400 response
+        self.assertEqual(lambda_response['statusCode'], 400)
     
     @patch('lambda_functions.run_agent.app.psycopg2')
     @patch('lambda_functions.run_agent.app.pd.read_csv')
